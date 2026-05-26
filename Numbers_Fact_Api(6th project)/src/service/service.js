@@ -13,7 +13,7 @@ const getNumber = async(Number)=>{
     const response = await axios.get(`https://api.api-ninjas.com/v1/facts?number=${number}`,{
         
             headers:{
-                 "X-Api-Key": n5oi9BTM6w6heNoxkxAEGV2qMXzcBnxC4stmrNt5,
+                 "X-Api-Key": "",
             }
         
     })
