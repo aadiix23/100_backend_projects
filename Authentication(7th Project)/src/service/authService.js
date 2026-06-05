@@ -1,8 +1,9 @@
 const bcrypt = require("bcrypt");
 const appError = require("../utils/appError")
 const logger = require("../utils/logger")
-const respond = require("../utils/respond")
 const pool = require("../config/db")
+const jwt = require("jsonwebtoken")
+require('dotenv').config();
 
 const register = async({name,email,password})=>{
     let existing = await pool.query(
@@ -25,20 +26,35 @@ const register = async({name,email,password})=>{
 
 const login = async(email,password)=>{
    const existingUser = await pool.query(
-       "SELECT email,password_hash FROM users WHERE email = $1",[email]
+       "SELECT id,email,password_hash FROM users WHERE email = $1",[email]
    );
    if(existingUser.rows.length===0){
     throw new appError("Account is Not Registered",401)
    }
    const user = existingUser.rows[0];
-   const isMatch = bcrypt.compare(password,user.password_hash)
+   const isMatch = await bcrypt.compare(password,user.password_hash)
    if(!isMatch){
     throw new appError("Invalid Credentials",401)
    }
+   const token = jwt.sign(
+    {
+    userId:user.id,
+    email:user.email,
+    },process.env.JWT_SECRET,
+    {
+        expiresIn:"3d"
+    }
+   )
    logger.info("User LoggedIN",{
-    userId:user.id
+    userId:user.id,
+    userEmail:user.email,
    })
-   return user;
-
-
+  return {
+  user: {
+    id: user.id,
+    email: user.email
+  },
+  token
+};
 }
+module.exports={register,login}
