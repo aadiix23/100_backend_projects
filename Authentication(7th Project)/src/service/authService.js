@@ -1,4 +1,5 @@
 const bcrypt = require("bcrypt");
+const crypto = require("crypto");
 const appError = require("../utils/appError")
 const logger = require("../utils/logger")
 const pool = require("../config/db")
@@ -57,4 +58,41 @@ const login = async(email,password)=>{
   token
 };
 }
-module.exports={register,login}
+
+const logout = async (userId) => {
+  logger.info("User LoggedOUT", { userId });
+  return {
+    success: true,
+    message: "Logged out successfully"
+  };
+};
+
+const forgotPassword = async (email) => {
+  const existingUser = await pool.query(
+    "SELECT id,email FROM users WHERE email = $1",
+    [email]
+  );
+
+  if (existingUser.rows.length === 0) {
+    throw new appError("Account is Not Registered", 404);
+  }
+
+  const user = existingUser.rows[0];
+  const resetToken = crypto.randomBytes(32).toString("hex");
+  const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+  logger.info("Password reset requested", {
+    userId: user.id,
+    userEmail: user.email,
+    expiresAt,
+  });
+
+  return {
+    success: true,
+    message: "Password reset token generated. Send it to the user via email.",
+    resetToken,
+    expiresAt,
+  };
+};
+
+module.exports={register,login,logout,forgotPassword}
