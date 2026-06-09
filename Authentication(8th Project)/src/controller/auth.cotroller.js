@@ -17,11 +17,7 @@ const register = async(req,res)=>{
 const login = async(req,res)=>{
     try {
         const {email,password}= req.body;
-        const loogedInUser = await service.login(
-            {
-                email,password
-            }
-        )
+        const loogedInUser = await service.login(email, password)
         respond.ok(res,{loogedInUser},201)
     } catch (error) {
       respond.fail(

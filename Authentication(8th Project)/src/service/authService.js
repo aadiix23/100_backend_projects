@@ -2,7 +2,7 @@ const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const appError = require("../utils/appError")
 const logger = require("../utils/logger")
-const pool = require("../config/db")
+const {pool} = require("../config/db")
 const jwt = require("jsonwebtoken")
 require('dotenv').config();
 
