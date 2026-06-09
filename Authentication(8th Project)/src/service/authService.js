@@ -91,4 +91,4 @@ const forgotPassword = async ({ email }) => {
   };
 };
 
-module.exports = { register, login, logout, forgotPassword }
+module.exports = { register, login,forgotPassword }
