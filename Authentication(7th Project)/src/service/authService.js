@@ -58,16 +58,7 @@ const login = async(email,password)=>{
   token
 };
 }
-
-const logout = async (userId) => {
-  logger.info("User LoggedOUT", { userId });
-  return {
-    success: true,
-    message: "Logged out successfully"
-  };
-};
-
-const forgotPassword = async (email) => {
+const forgotPassword = async ({ email }) => {
   const existingUser = await pool.query(
     "SELECT id,email FROM users WHERE email = $1",
     [email]
@@ -78,21 +69,26 @@ const forgotPassword = async (email) => {
   }
 
   const user = existingUser.rows[0];
-  const resetToken = crypto.randomBytes(32).toString("hex");
-  const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+  const resetToken = jwt.sign(
+    { userId: user.id, email: user.email }, 
+    process.env.JWT_SECRET,
+    { expiresIn: "1h" }
+  );
+
+  const resetLink = `${process.env.APP_URL || `http://localhost:${process.env.PORT || 3000}`}/reset-password?token=${resetToken}`;
 
   logger.info("Password reset requested", {
     userId: user.id,
     userEmail: user.email,
-    expiresAt,
+    resetLink,
   });
 
   return {
     success: true,
-    message: "Password reset token generated. Send it to the user via email.",
+    message: "Password reset link generated. Send it to the user via email.",
+    resetLink,
     resetToken,
-    expiresAt,
   };
 };
 
-module.exports={register,login,logout,forgotPassword}
+module.exports = { register, login, logout, forgotPassword }
